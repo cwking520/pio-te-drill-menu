@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <title>TE Drill Menu</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange:      #F97316;
+      --orange-dark: #C2510A;
+      --orange-glow: rgba(249,115,22,0.18);
+      --blue:        #2563EB;
+      --blue-light:  #3B82F6;
+      --blue-dark:   #1E3A8A;
+      --blue-glow:   rgba(37,99,235,0.18);
+      --bg:          #080D18;
+      --surface:     #0F1623;
+      --surface-2:   #19212F;
+      --surface-3:   #232F41;
+      --text:        #F1F5F9;
+      --text-muted:  #64748B;
+      --border:      #1E2A3B;
+
+      /* category palette */
+      --blocking:  #EF4444;
+      --routes:    #2563EB;
+      --catching:  #10B981;
+      --explosive: #F97316;
+      --ballsec:   #8B5CF6;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ══════════════════════════════════════
+       PASSWORD OVERLAY
+    ══════════════════════════════════════ */
+    #pw-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 24px;
+      transition: opacity 0.4s ease;
+    }
+    #pw-overlay.fade-out { opacity: 0; pointer-events: none; }
+
+    #pw-box {
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      animation: popIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.88) translateY(16px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0);    }
+    }
+
+    .pw-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+      color: #fff;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      width: 72px;
+      height: 72px;
+      line-height: 72px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 40px var(--orange-glow);
+    }
+
+    .pw-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .pw-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    .pw-field {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 16px;
+      font-family: inherit;
+      color: var(--text);
+      text-align: center;
+      letter-spacing: 3px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      margin-bottom: 12px;
+      -webkit-appearance: none;
+    }
+    .pw-field:focus {
+      border-color: var(--blue-light);
+      box-shadow: 0 0 0 3px var(--blue-glow);
+    }
+    .pw-field::placeholder { letter-spacing: 1px; color: var(--text-muted); font-size: 14px; }
+
+    .pw-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      color: #fff;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: opacity 0.15s, transform 0.1s;
+      -webkit-appearance: none;
+    }
+    .pw-btn:active { opacity: 0.85; transform: scale(0.98); }
+
+    .pw-error {
+      font-size: 12px;
+      color: #F87171;
+      margin-top: 10px;
+      height: 16px;
+      font-weight: 500;
+    }
+
+    /* ══════════════════════════════════════
+       HEADER
+    ══════════════════════════════════════ */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 16px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--blue), var(--orange));
+    }
+    .header::before {
+      content: 'TE';
+      position: absolute;
+      right: -8px;
+      top: -16px;
+      font-size: 100px;
+      font-weight: 900;
+      color: rgba(255,255,255,0.03);
+      letter-spacing: -4px;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 12px; }
+
+    .pos-badge {
+      background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      padding: 5px 11px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.3px;
+      line-height: 1.15;
+    }
+    h1 em { font-style: normal; color: var(--orange); }
+
+    .header-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 3px;
+      display: none; /* hidden on mobile */
+    }
+
+    .header-stats {
+      display: flex;
+      gap: 16px;
+    }
+    .stat { text-align: center; }
+    .stat-num {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--orange);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 9px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ══════════════════════════════════════
+       CONTROLS — sticky toolbar
+    ══════════════════════════════════════ */
+    .controls {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* search row */
+    .search-wrap {
+      position: relative;
+    }
+    .search-wrap svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      width: 15px;
+      height: 15px;
+      pointer-events: none;
+    }
+    .search-wrap input {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px 10px 34px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      -webkit-appearance: none;
+      transition: border-color 0.2s;
+    }
+    .search-wrap input:focus { border-color: var(--blue-light); }
+    .search-wrap input::placeholder { color: var(--text-muted); font-size: 13px; }
+
+    /* filter rows */
+    .filter-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .filter-row::-webkit-scrollbar { display: none; }
+
+    .filter-label-inline {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      align-self: center;
+      flex-shrink: 0;
+      padding-right: 2px;
+    }
+
+    .filter-btn {
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 7px 13px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-height: 34px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .filter-btn:active { opacity: 0.75; }
+
+    /* category active states */
+    .filter-btn[data-cat="all"].active,
+    .filter-btn[data-desig].active     { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .filter-btn[data-cat="blocking"].active  { background: var(--blocking);  border-color: var(--blocking);  color: #fff; }
+    .filter-btn[data-cat="routes"].active    { background: var(--routes);    border-color: var(--routes);    color: #fff; }
+    .filter-btn[data-cat="catching"].active  { background: var(--catching);  border-color: var(--catching);  color: #fff; }
+    .filter-btn[data-cat="explosive"].active { background: var(--explosive); border-color: var(--explosive); color: #fff; }
+    .filter-btn[data-cat="ballsec"].active   { background: var(--ballsec);   border-color: var(--ballsec);   color: #fff; }
+
+    /* ══════════════════════════════════════
+       MAIN + GRID
+    ══════════════════════════════════════ */
+    .main { padding: 16px; }
+
+    .category-block { margin-bottom: 32px; }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .category-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .cat-blocking .category-dot  { background: var(--blocking);  }
+    .cat-routes   .category-dot  { background: var(--routes);    }
+    .cat-catching .category-dot  { background: var(--catching);  }
+    .cat-explosive .category-dot { background: var(--explosive); }
+    .cat-ballsec  .category-dot  { background: var(--ballsec);   }
+
+    .category-name {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .cat-blocking  .category-name { color: var(--blocking);  }
+    .cat-routes    .category-name { color: var(--routes);    }
+    .cat-catching  .category-name { color: var(--catching);  }
+    .cat-explosive .category-name { color: var(--explosive); }
+    .cat-ballsec   .category-name { color: var(--ballsec);   }
+
+    .category-line { flex: 1; height: 1px; background: var(--border); }
+    .category-count { font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
+
+    /* Mobile-first grid: 1 col → 2 col (≥640) → 3 col (≥1100) */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    /* ══════════════════════════════════════
+       CARDS
+    ══════════════════════════════════════ */
+    .card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .card-top {
+      padding: 14px 14px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .drill-num {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+      padding: 3px 8px;
+      border-radius: 5px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .card-title-wrap { flex: 1; min-width: 0; }
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.35;
+      color: var(--text);
+    }
+    .card-coach {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+    .card-coach span { color: var(--blue-light); font-weight: 500; }
+
+    .card-body {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .card-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 5px;
+    }
+    .badge-solo    { background: rgba(249,115,22,0.15); color: var(--orange);     border: 1px solid rgba(249,115,22,0.3); }
+    .badge-partner { background: rgba(37,99,235,0.15);  color: var(--blue-light); border: 1px solid rgba(37,99,235,0.3);  }
+    .badge-group   { background: rgba(16,185,129,0.15); color: #34D399;            border: 1px solid rgba(16,185,129,0.3); }
+    .badge-equip {
+      background: var(--surface-3);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      font-size: 10px;
+      font-weight: 500;
+      padding: 3px 9px;
+      border-radius: 5px;
+    }
+
+    .card-purpose {
+      font-size: 13px;
+      color: #94A3B8;
+      line-height: 1.65;
+    }
+
+    /* Expandable notes */
+    .toggle-notes {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0;
+      min-height: 36px; /* bigger tap target */
+      -webkit-tap-highlight-color: transparent;
+      transition: color 0.15s;
+    }
+    .toggle-notes:active { color: var(--orange); }
+    .toggle-notes svg {
+      width: 13px; height: 13px;
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle-notes.open svg { transform: rotate(180deg); }
+
+    .card-notes {
+      font-size: 12px;
+      color: #94A3B8;
+      line-height: 1.75;
+      background: var(--surface-2);
+      border-radius: 8px;
+      padding: 10px 12px;
+      border-left: 3px solid var(--orange);
+      display: none;
+    }
+    .card-notes.open { display: block; }
+
+    /* Video button */
+    .card-footer { padding: 10px 14px 14px; }
+    .video-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 13px 16px; /* tall tap target */
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .video-btn:active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+    .video-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+    /* ══════════════════════════════════════
+       EMPTY STATE
+    ══════════════════════════════════════ */
+    .empty {
+      text-align: center;
+      padding: 56px 20px;
+      color: var(--text-muted);
+    }
+    .empty-icon { font-size: 36px; margin-bottom: 10px; }
+    .empty h3 { font-size: 15px; font-weight: 600; margin-bottom: 5px; color: var(--text); }
+    .empty p { font-size: 13px; }
+
+    /* ══════════════════════════════════════
+       HIDDEN
+    ══════════════════════════════════════ */
+    .card.hidden, .category-block.hidden { display: none; }
+    #empty-state { display: none; }
+
+    /* ══════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════ */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 16px;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    /* ══════════════════════════════════════
+       TABLET (≥ 640px)
+    ══════════════════════════════════════ */
+    @media (min-width: 640px) {
+      .header { padding: 22px 24px 20px; }
+      .header::before { font-size: 130px; }
+      h1 { font-size: 24px; }
+      .stat-num { font-size: 24px; }
+      .header-sub { display: block; }
+      .controls { padding: 12px 24px; gap: 10px; }
+      .main { padding: 20px 24px; }
+      .grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+      .card-title { font-size: 14px; }
+      .video-btn:hover {
+        background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+        border-color: var(--blue);
+        color: #fff;
+      }
+      .card:hover { border-color: var(--blue-light); box-shadow: 0 4px 20px rgba(37,99,235,0.12); }
+      .card[data-cat="blocking"]:hover  { border-color: var(--blocking); }
+      .card[data-cat="routes"]:hover    { border-color: var(--routes);   }
+      .card[data-cat="catching"]:hover  { border-color: var(--catching); }
+      .card[data-cat="explosive"]:hover { border-color: var(--explosive);}
+      .card[data-cat="ballsec"]:hover   { border-color: var(--ballsec);  }
+    }
+
+    /* ══════════════════════════════════════
+       DESKTOP (≥ 1100px)
+    ══════════════════════════════════════ */
+    @media (min-width: 1100px) {
+      .header { padding: 28px 40px 24px; }
+      .controls { padding: 14px 40px; flex-direction: row; align-items: center; flex-wrap: wrap; }
+      .search-wrap { flex: 0 0 280px; }
+      .filter-row { overflow: visible; flex-wrap: wrap; }
+      .main { padding: 28px 40px; }
+      .grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      .footer { padding: 20px 40px; text-align: left; display: flex; justify-content: space-between; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     PASSWORD OVERLAY
+════════════════════════════════════════ -->
+<div id="pw-overlay">
+  <div id="pw-box">
+    <div class="pw-badge">TE</div>
+    <p class="pw-title">Tight End Drill Menu</p>
+    <p class="pw-subtitle">Enter your access code to continue</p>
+    <input
+      class="pw-field"
+      id="pw-input"
+      type="password"
+      placeholder="Access Code"
+      autocomplete="off"
+      autocorrect="off"
+      spellcheck="false"
+    />
+    <button class="pw-btn" onclick="checkPw()">Enter</button>
+    <p class="pw-error" id="pw-error"></p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     HEADER
+════════════════════════════════════════ -->
+<header class="header">
+  <div class="header-inner">
+    <div class="header-left">
+      <span class="pos-badge">TE</span>
+      <div>
+        <h1>Drill <em>Menu</em></h1>
+        <p class="header-sub">D1 Self-Guided Summer Bank &nbsp;·&nbsp; Verified Free Links &nbsp;·&nbsp; Coach-Sourced</p>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="stat"><div class="stat-num">24</div><div class="stat-label">Drills</div></div>
+      <div class="stat"><div class="stat-num">5</div><div class="stat-label">Categories</div></div>
+      <div class="stat"><div class="stat-num">5</div><div class="stat-label">Blocks</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════
+     CONTROLS
+════════════════════════════════════════ -->
+<div class="controls">
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+    </svg>
+    <input id="search" type="search" placeholder="Search drills, coaches, equipment…"/>
+  </div>
+
+  <!-- Category filter -->
+  <div class="filter-row" id="cat-filters">
+    <span class="filter-label-inline">Cat</span>
+    <button class="filter-btn active" data-cat="all">All</button>
+    <button class="filter-btn" data-cat="blocking">🛡 Blocking</button>
+    <button class="filter-btn" data-cat="routes">🏃 Routes</button>
+    <button class="filter-btn" data-cat="catching">🙌 Catching</button>
+    <button class="filter-btn" data-cat="explosive">⚡ Explosive</button>
+    <button class="filter-btn" data-cat="ballsec">🏈 Ball Sec</button>
+  </div>
+
+  <!-- Designation filter -->
+  <div class="filter-row" id="desig-filters">
+    <span class="filter-label-inline">Setup</span>
+    <button class="filter-btn active" data-desig="all">All</button>
+    <button class="filter-btn" data-desig="solo">Solo</button>
+    <button class="filter-btn" data-desig="partner">Partner</button>
+    <button class="filter-btn" data-desig="group">Group</button>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════
+     MAIN
+════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- ── BLOCKING ── -->
+  <div class="category-block cat-blocking" id="block-blocking">
+    <div class="category-header">
+      <div class="category-dot"></div>
+      <span class="category-name">Blocking</span>
+      <div class="category-line"></div>
+      <span class="category-count">6 drills</span>
+    </div>
+    <div class="grid">
+
+      <div class="card" data-cat="blocking" data-desig="partner" data-search="stance get-off run-block footwork george kittle teu 49ers cone hand shield">
+        <div class="card-top">
+          <span class="drill-num">#01</span>
+          <div class="card-title-wrap">
+            <div class="card-title">Stance, Get-Off &amp; Run-Block Footwork Series</div>
+            <div class="card-coach">Coach: <span>George Kittle · SF 49ers / TEU</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-partner">Partner</span>
+            <span class="badge-equip">1 Cone · Hand Shield / Bag</span>
+          </div>
+          <p class="card-purpose">Builds elite first-step explosion out of a 3-point stance, proper pad level, and "step-on-his-toes" footwork Kittle uses to win at the POA on outside zone. Foundational in-line run-game rep.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Three-point stance, fire off low on snap count, take a 6-inch power step with play-side foot, second step lands inside the defender's frame. Hands fit thumbs-up inside the breastplate. Run 6 reps each direction.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=8joelyXBUjI" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — Kittle Run Blocking at TEU
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="blocking" data-desig="partner" data-search="outside zone reach scoop lsu hahnstadt bucket step crossover hand shield">
+        <div class="card-top">
+          <span class="drill-num">#02</span>
+          <div class="card-title-wrap">
+            <div class="card-title">TE Outside-Zone Reach-Scoop Drill</div>
+            <div class="card-coach">Coach: <span>LSU TE Staff · Coach Hahnstadt</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-partner">Partner</span>
+            <span class="badge-equip">2 Cones · Hand Shield</span>
+          </div>
+          <p class="card-purpose">Trains the bucket step + crossover that lets a TE reach a 9-tech or wide-aligned end. Core block for any outside-zone team (Shanahan / McVay tree concepts).</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Defender (partner with shield) aligns head-up to outside shade. Open with a 45° bucket step to gain the play-side number, crossover step to overtake, finish with hip flip and run feet. Five reps right, five reps left.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=WcKB2byUGGw" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — LSU Zone Blocking Drills
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="blocking" data-desig="group" data-search="combo double team linebacker marty costello winnipeg blue bombers hand shields lb">
+        <div class="card-top">
+          <span class="drill-num">#03</span>
+          <div class="card-title-wrap">
+            <div class="card-title">Combo / Double-Team to Linebacker Drill</div>
+            <div class="card-coach">Coach: <span>Marty Costello · Winnipeg Blue Bombers</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-group">Group (3+)</span>
+            <span class="badge-equip">2 Hand Shields · 2 Partners</span>
+          </div>
+          <p class="card-purpose">Teaches hip-to-hip movement, vertical push, eyes on the LB, and clean late climb on combo/deuce blocks with the tackle in gap and zone schemes.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">TE plays the "drive" player; partner OT plays the "post." Get hip-to-hip on first two steps, eyes up to LB, peel off only when LB declares. Run 4–6 reps each side.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=ETz_viOw4ZM" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — 3 Drills to Teach Double Team Blocks
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="blocking" data-desig="partner" data-search="pass pro kick slide react carolina panthers rush olb max protection hand inside">
+        <div class="card-top">
+          <span class="drill-num">#04</span>
+          <div class="card-title-wrap">
+            <div class="card-title">TE Pass-Pro Kick-Slide &amp; React Drill</div>
+            <div class="card-coach">Coach: <span>Carolina Panthers OL/TE Staff · USA Football</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-partner">Partner</span>
+            <span class="badge-equip">2 Cones · 1 Partner Pass Rusher</span>
+          </div>
+          <p class="card-purpose">Teaches a TE the exact same pass-set technique a tackle uses when chipping or staying in on max-pro. Handles speed-to-power and inside counters from a DE or blitzing OLB.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">TE in 2-point stance, kick-slide on snap, partner rushes outside or counters in. Stay square, hands inside, no overset. Hard reset every 6 seconds.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=9-FEQK61sXE" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — Panthers Kick-Slide &amp; React
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="blocking" data-desig="partner" data-search="stalk block space perimeter screen temple wr db box rpo jet sweep punch">
+        <div class="card-top">
+          <span class="drill-num">#05</span>
+          <div class="card-title-wrap">
+            <div class="card-title">Stalk-Block in Space (Perimeter Block)</div>
+            <div class="card-coach">Coach: <span>Temple University WR/TE Staff</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-partner">Partner</span>
+            <span class="badge-equip">2 Cones (5×5 yd box) · Partner DB</span>
+          </div>
+          <p class="card-purpose">Critical for screen-game TEs and any RPO/jet-sweep offense. Teaches you to break down at the right depth, mirror the DB, and finish without lunging. Direct translation: bubble screens, jet sweeps, tunnel routes.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Sprint 5 yards, break down chest over knees, stay in front of defender for 3 seconds. Punch with thumbs up, no holding. Goal is sustain — not a knockdown.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=1aFafKiU9jo" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — WR Stalk Blocking Drills (Temple)
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="blocking" data-desig="partner" data-search="towel drill hand placement inside hands sparano colts nfl ol buffalo bills leg drive">
+        <div class="card-top">
+          <span class="drill-num">#06</span>
+          <div class="card-title-wrap">
+            <div class="card-title">Towel Drill (Hand Placement &amp; Inside Hands)</div>
+            <div class="card-coach">Coach: <span>Tony Sparano Jr. · Indianapolis Colts OL Coach</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-partner">Partner</span>
+            <span class="badge-equip">1 Hand Towel · 1 Partner</span>
+          </div>
+          <p class="card-purpose">The same drill Sparano uses with NFL OL — forces inside hands, locked elbows, and continuous leg drive. Eliminates the "catch the block" habit with a simple two-person setup.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Both players grab opposite ends of the towel as if locked up post-punch. Drive partner backward 5 yards keeping elbows in, eyes up, big base. Reset, repeat 6 reps each side.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.colts.com/video/mic-d-up-tony-sparano-jr-training-camp" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5.5 20.5A.5.5 0 015 20V4a.5.5 0 01.8-.4l12 8a.5.5 0 010 .8l-12 8a.5.5 0 01-.3.1z"/></svg>
+            Watch — Towel Drill (Sparano Jr. · Colts)
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /blocking -->
+
+  <!-- ── ROUTE RUNNING ── -->
+  <div class="category-block cat-routes" id="block-routes">
+    <div class="category-header">
+      <div class="category-dot"></div>
+      <span class="category-name">Route Running</span>
+      <div class="category-line"></div>
+      <span class="category-count">7 drills</span>
+    </div>
+    <div class="grid">
+
+      <div class="card" data-cat="routes" data-desig="solo" data-search="slap swim dip rip release justin burke utsa bag press lb safeties nickel slant out seam">
+        <div class="card-top">
+          <span class="drill-num">#07</span>
+          <div class="card-title-wrap">
+            <div class="card-title">Slap-and-Swim / Dip-and-Rip Release Series</div>
+            <div class="card-coach">Coach: <span>Justin Burke · UTSA Co-OC / TE Coach</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-solo">Solo / Partner</span>
+            <span class="badge-equip">Stand-Up Bag · 4 Cones</span>
+          </div>
+          <p class="card-purpose">The two foundational TE press releases. Burke breaks the release into 1st-level (vs. DE/SAM) and 2nd-level (vs. LB) — exactly the leverage-reading process you'll see in a D1 TE room.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Outside step + slap defender's elbow → swim across; OR outside step + dip inside shoulder + rip arm over. Finish into a slant, out, or seam (rotate routes). 8 reps total.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=1TowDJ2pDnU" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — UTSA TE Pass Release Drills
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="routes" data-desig="solo" data-search="3-cone release conversion option choice route matt johns william mary zone man decision">
+        <div class="card-top">
+          <span class="drill-num">#08</span>
+          <div class="card-title-wrap">
+            <div class="card-title">3-Cone Release for TE Conversion / Option Routes</div>
+            <div class="card-coach">Coach: <span>Matt Johns · William &amp; Mary WR/TE Coach</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-solo">Solo / Partner</span>
+            <span class="badge-equip">3 Cones (L-shape, 5 yds apart)</span>
+          </div>
+          <p class="card-purpose">Trains the snap-through-the-stem decision-making elite TEs need on option routes vs. zone vs. man. Direct translation to choice routes, basics, and MOFC/MOFO middle reads.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Release outside the first cone, stem flat to the second, plant and break to the third based on the "coverage call." Catch on the break.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=4SqGezj1gts" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — 3-Cone TE Conversion Routes (Matt Johns)
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="routes" data-desig="solo" data-search="top route 3-step separation kelce teu 2025 out dig curl chop step gear down big body">
+        <div class="card-top">
+          <span class="drill-num">#09</span>
+          <div class="card-title-wrap">
+            <div class="card-title">Top-of-Route 3-Step Separation Drill</div>
+            <div class="card-coach">Coach: <span>Travis Kelce · KC Chiefs / TEU Co-Founder</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-solo">Solo / Partner</span>
+            <span class="badge-equip">4 Cones (15-yd tree) · Football</span>
+          </div>
+          <p class="card-purpose">Kelce's TEU 2025 teaching point: big TEs need 2–3 chopped steps to gear-down without losing speed. Drill replicates out, dig, and curl breaks.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Sprint to the cone at 90%, take 2–3 chopped steps to drop hips, stick on the outside foot, break flat. Re-accelerate for 5 yards out of the break. 4 routes left, 4 right.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://m.youtube.com/shorts/FmI9oLRMtPc" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — Kelce Route Running at TEU
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="routes" data-desig="solo" data-search="kelce press release route breakdown film study stem hook defender sell fake walkthrough watch">
+        <div class="card-top">
+          <span class="drill-num">#10</span>
+          <div class="card-title-wrap">
+            <div class="card-title">Kelce Route Breakdown (Film Study)</div>
+            <div class="card-coach">Coach: <span>Travis Kelce · Kansas City Chiefs</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-solo">Solo (Film)</span>
+            <span class="badge-equip">No Equipment — Watch Before Route Blocks</span>
+          </div>
+          <p class="card-purpose">How Kelce wins vs. press, stems vs. hook defenders, and sells fakes at the top. Watch this BEFORE route blocks to anchor what good looks like. Then go drill it.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Watch once, identify 1 specific detail, then go drill it. Pair with Drills #07–#13.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=0UhQ8vRJL5w" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — Kelce Route Running Breakdown
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="routes" data-desig="partner" data-search="square drill zone defenders lb nickel dj croley webber settle window mofc mofo cover 3">
+        <div class="card-top">
+          <span class="drill-num">#11</span>
+          <div class="card-title-wrap">
+            <div class="card-title">Square Drill — Finding Space vs. Zone</div>
+            <div class="card-coach">Coach: <span>D.J. Croley · Webber International TE Coach</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-partner">Partner</span>
+            <span class="badge-equip">4 Cones (5×3 yd box) · Football</span>
+          </div>
+          <p class="card-purpose">Trains how to "find the open window" in zone — the exact skill a TE needs against MOFC/MOFO LB drops, Cover-3 hook defenders, and nickel rolls.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Defender drops to one of two cones; TE releases off the LOS, settles in the open window opposite the drop, snaps head, catches. 6 reps each direction.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=1pbIgITfK2A" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — Tight End Drills (D.J. Croley)
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="routes" data-desig="partner" data-search="route on air set out corner seam dig whip texas angle drew mehringer oregon commanders play action">
+        <div class="card-top">
+          <span class="drill-num">#12</span>
+          <div class="card-title-wrap">
+            <div class="card-title">TE Route-on-Air Set (Full Route Tree)</div>
+            <div class="card-coach">Coach: <span>Drew Mehringer · Oregon OC (former Oregon TE Coach)</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-partner">Partner / Group</span>
+            <span class="badge-equip">Cone Markers · Footballs · Thrower</span>
+          </div>
+          <p class="card-purpose">Run the modern D1 TE route tree on air (every route, both hashes). Builds rhythm timing for play-action offenses. Target: 32 routes per session.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Run 8 routes each side, hash to numbers: 5-yd out, flat, seam, dig at 12, corner at 15, whip, basic, deep cross. Mark each on a notepad. Rotate thrower/runner.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=8iwbzD4PJqg" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — TE Route Drills (Commanders Camp)
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="routes" data-desig="partner" data-search="leverage release read kittle nike 1-on-1 skills drills open shoulder inside outside head-up match coverage">
+        <div class="card-top">
+          <span class="drill-num">#13</span>
+          <div class="card-title-wrap">
+            <div class="card-title">Leverage-Based Release Read</div>
+            <div class="card-coach">Coach: <span>George Kittle · 49ers (Nike 1-on-1 Skills &amp; Drills)</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-partner">Partner</span>
+            <span class="badge-equip">2 Cones · Partner Defender · Football</span>
+          </div>
+          <p class="card-purpose">Kittle's teaching: take the side the defender doesn't leverage. The read is mandatory — defender shows leverage at the snap, TE attacks the open shoulder. Critical vs. modern hybrid nickels in match coverage.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Defender aligns inside, outside, or head-up at the snap. TE has 1 step to read leverage and release to the open side, finish into a 12-yard route. 10 reps.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=UiYHR608jD0" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — Kittle Footwork, Blocking &amp; YAC (Nike)
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /routes -->
+
+  <!-- ── CATCHING ── -->
+  <div class="category-block cat-catching" id="block-catching">
+    <div class="category-header">
+      <div class="category-dot"></div>
+      <span class="category-name">Catching</span>
+      <div class="category-line"></div>
+      <span class="category-count">4 drills</span>
+    </div>
+    <div class="grid">
+
+      <div class="card" data-cat="catching" data-desig="group" data-search="combine gauntlet nfl late hands ball tracking tuck speed traffic 2019 scouting">
+        <div class="card-top">
+          <span class="drill-num">#14</span>
+          <div class="card-title-wrap">
+            <div class="card-title">NFL Combine TE Gauntlet (Late Hands at Speed)</div>
+            <div class="card-coach">Coach: <span>NFL Combine TE Staff Protocol</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-group">Group (3+)</span>
+            <span class="badge-equip">5 Cones · 4–5 Footballs · 2 Throwers</span>
+          </div>
+          <p class="card-purpose">The most famous TE catching drill — tests late hands, ball-tracking, and tucks at speed. Replicates over-the-middle catches in traffic where you can't gather your feet.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Sprint along a line catching alternating-side throws. Hands snap late, eyes through the catch, no body catches. 2–3 rounds.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=DbwelwkvHSc" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — TE Gauntlet (2019 NFL Combine)
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="catching" data-desig="group" data-search="hardball awkward catch himebauch contested dislodge one-leg twisting kneeling off-balance hands">
+        <div class="card-top">
+          <span class="drill-num">#15</span>
+          <div class="card-title-wrap">
+            <div class="card-title">"Hardball" + "Awkward Catch" Drill Series</div>
+            <div class="card-coach">Coach: <span>Jonathan Himebauch · NFL/College TE Consultant</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-group">Group (3)</span>
+            <span class="badge-equip">Footballs · 2 Hand Shields</span>
+          </div>
+          <p class="card-purpose">Teaches securing the ball in 4 contested scenarios while partners attempt to dislodge. "Awkward Catch" forces grabs from off-balance positions. Trains for the catches that decide D1 games.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Throws come from various angles — overhead, low, behind. Catch, immediately tuck, partner punches at the ball. 12 reps.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/playlist?list=PLophBuf6iBSXiYQvUW3zQWx_y7YUeczTp" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — TE Training &amp; Position Drills (Playlist)
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="catching" data-desig="solo" data-search="jugs low ball sideline toe tap pinkies together scoop palms up rutsch machine protocol d1">
+        <div class="card-top">
+          <span class="drill-num">#16</span>
+          <div class="card-title-wrap">
+            <div class="card-title">JUGS Low-Ball / Sideline Toe-Tap Drill</div>
+            <div class="card-coach">Coach: <span>Standard NFL / D1 Receiving Room Protocol</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-solo">Solo</span>
+            <span class="badge-equip">JUGS Machine · Sideline Cones</span>
+          </div>
+          <p class="card-purpose">Builds late-hand low-ball technique (pinkies-together) and sideline body control — the catches you need on hooks broken down low and on sideline outs.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Set machine to about belt-high → ankle-high. Pinkies together, scoop with palms up. Add a sideline toe-tap at the end. 20 reps.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=6zLzTvTMKxk" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — Receiving Drill (JUGS Sports)
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="catching" data-desig="partner" data-search="body control sideline comeback teu kelce kittle olsen two foot toe drag end zone pylon corner">
+        <div class="card-top">
+          <span class="drill-num">#17</span>
+          <div class="card-title-wrap">
+            <div class="card-title">Body-Control Sideline Drill (Two-Foot In, Toe-Drag)</div>
+            <div class="card-coach">Coach: <span>TEU 2024–25 · Kelce / Kittle / Olsen</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-partner">Partner</span>
+            <span class="badge-equip">2 Cones (sideline) · Footballs · Thrower</span>
+          </div>
+          <p class="card-purpose">Direct simulation of back-pylon, corner-of-end-zone, and sideline-comeback catches. Critical body control rep for any receiving TE.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Run a 12-yard comeback to the sideline, throw on the break. Catch with two feet down OR a toe drag, fall in-bounds. 10 reps each sideline.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=kMKsEoquvfQ" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — Kelce, Kittle &amp; Olsen at TEU
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /catching -->
+
+  <!-- ── EXPLOSIVE MOVEMENTS ── -->
+  <div class="category-block cat-explosive" id="block-explosive">
+    <div class="category-header">
+      <div class="category-dot" style="background:var(--explosive)"></div>
+      <span class="category-name" style="color:var(--explosive)">Explosive Movements</span>
+      <div class="category-line"></div>
+      <span class="category-count">4 drills</span>
+    </div>
+    <div class="grid">
+
+      <div class="card" data-cat="explosive" data-desig="solo" data-search="3 point stance first step explosion kittle 2017 combine quickness jam clean off los band resistance">
+        <div class="card-top">
+          <span class="drill-num">#18</span>
+          <div class="card-title-wrap">
+            <div class="card-title">3-Point Stance First-Step Explosion</div>
+            <div class="card-coach">Coach: <span>George Kittle · 2017 NFL Combine / Nike Skills &amp; Drills</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-solo">Solo / Partner</span>
+            <span class="badge-equip">2 Cones · Optional Resistance Band</span>
+          </div>
+          <p class="card-purpose">TE-specific 1st-step quickness — the difference between getting jammed and beating a defender clean off the LOS. Same protocol scouts watched at Kittle's combine.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">From 3-point, explode to first cone (3 yards) on snap count. Reset. 10 reps. Add band resistance for the second set of 5.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=QTrM0rnL6RA" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — George Kittle 2017 Combine Workout
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="explosive" data-desig="solo" data-search="lateral bound skater plyo cut hip explosion 250 lb plant tb12 gronkowski outs hooks yac">
+        <div class="card-top">
+          <span class="drill-num">#19</span>
+          <div class="card-title-wrap">
+            <div class="card-title">Lateral Bound / Skater Plyo for Cuts</div>
+            <div class="card-coach">Coach: <span>Gronkowski Training Protocol (TB12 / D1 S&amp;C)</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-solo">Solo</span>
+            <span class="badge-equip">2 Cones or Open Space</span>
+          </div>
+          <p class="card-purpose">Builds the lateral hip explosion that lets a 250+ lb TE plant and cut without rounding routes. Direct translation to outs, hooks, and YAC cuts.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Explode laterally, stick the landing for 1 second, immediately bound back. 3 sets of 10 (5 each side).</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=CwGDeBMGQgI" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — Split Jumps for Explosive Power
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="explosive" data-desig="solo" data-search="l-drill 3-cone brock bowers bend plant re-accelerate slant post corner inside-out pre-draft">
+        <div class="card-top">
+          <span class="drill-num">#20</span>
+          <div class="card-title-wrap">
+            <div class="card-title">L-Drill / 3-Cone</div>
+            <div class="card-coach">Coach: <span>NFL Combine Standard · Brock Bowers Pre-Draft</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-solo">Solo</span>
+            <span class="badge-equip">3 Cones (L-shape, 5 yds each side)</span>
+          </div>
+          <p class="card-purpose">Tests bend, plant, and re-acceleration around a tight corner — the exact movement on slants, posts, and corners breaking inside-out.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Run the L pattern, plant low and tight around the third cone. 4 reps.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://m.youtube.com/watch?v=KBxM1NDF4sA" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — Brock Bowers: The Ultimate TE (CBS Sports)
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="explosive" data-desig="solo" data-search="med ball hip toss rotational power gronkowski gronk wall rotate finish block route turn stack">
+        <div class="card-top">
+          <span class="drill-num">#21</span>
+          <div class="card-title-wrap">
+            <div class="card-title">Med Ball Hip-Toss / Rotational Power Throw</div>
+            <div class="card-coach">Coach: <span>Rob Gronkowski Training Protocol</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-solo">Solo / Partner</span>
+            <span class="badge-equip">8–12 lb Medicine Ball · Wall or Partner</span>
+          </div>
+          <p class="card-purpose">TE hip rotation power — the foundation of the violent finish every NFL TE coach demands on blocks AND the hip turn at the top of routes.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Athletic stance, rotate hips and drive ball into wall/partner from waist. 3 sets of 8 each side.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=Xcu9Qt3MfoY" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — Training With Gronk (NFL's Strongest TE)
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /explosive -->
+
+  <!-- ── BALL SECURITY ── -->
+  <div class="category-block cat-ballsec" id="block-ballsec">
+    <div class="category-header">
+      <div class="category-dot"></div>
+      <span class="category-name">Ball Security</span>
+      <div class="category-line"></div>
+      <span class="category-count">3 drills</span>
+    </div>
+    <div class="grid">
+
+      <div class="card" data-cat="ballsec" data-desig="group" data-search="strip gauntlet punch traffic shields four points contact yac fumble prevent ball carrier">
+        <div class="card-top">
+          <span class="drill-num">#22</span>
+          <div class="card-title-wrap">
+            <div class="card-title">Strip-Gauntlet (Punch Through Traffic)</div>
+            <div class="card-coach">Coach: <span>Standard D1 Ball-Security Protocol · USA Football</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-group">Group (5+)</span>
+            <span class="badge-equip">6 Partners with Hand Shields · Football</span>
+          </div>
+          <p class="card-purpose">Forces you to maintain 4 points of contact (fingers/forearm/bicep/chest) while attackers punch the ball. Direct translation to YAC runs through second-level traffic.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Defenders alternate sides punching at the ball (NOT the body). Carrier maintains high-and-tight, drives knees through, switches arms based on side of contact. 4 reps.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.youtube.com/watch?v=8oBzMthIjAE" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z"/></svg>
+            Watch — Gauntlet Drill
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="ballsec" data-desig="group" data-search="hardball 4 scenarios himebauch post-catch tuck second effort ground landing traffic lock hands bicep">
+        <div class="card-top">
+          <span class="drill-num">#23</span>
+          <div class="card-title-wrap">
+            <div class="card-title">Hardball Drill – 4 Scenarios</div>
+            <div class="card-coach">Coach: <span>Jonathan Himebauch · College TE Skills Consultant</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-group">Group</span>
+            <span class="badge-equip">Football · 2 Partners</span>
+          </div>
+          <p class="card-purpose">Full-contact ball security in 4 positions: post-catch tuck, second-effort run, going to the ground, and landing in traffic. Forces your hands to lock around the ball under live contact.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Catch, tuck, run 5 yards while 2 partners try to rip ball loose. Emphasis on bicep pinning the ball to chest. 10 reps.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://footballtoolbox.net/special-teams/tight-end-pass-release-drills" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6v2H5v11h11v-5h2v6a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1h6zm11-3v8l-3.3-3.3-5.4 5.4-1.4-1.4 5.4-5.4L13 3h8z"/></svg>
+            View — Football Toolbox TE Drills (Himebauch)
+          </a>
+        </div>
+      </div>
+
+      <div class="card" data-cat="ballsec" data-desig="solo" data-search="switch hands run yac cross field outside arm fumble open field direction change kittle teu nfl">
+        <div class="card-top">
+          <span class="drill-num">#24</span>
+          <div class="card-title-wrap">
+            <div class="card-title">Switch-Hands on the Run</div>
+            <div class="card-coach">Coach: <span>George Kittle · TEU 2024 Ball-Security Session</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-badges">
+            <span class="badge badge-solo">Solo / Partner</span>
+            <span class="badge-equip">Football · 4 Cones (lateral path)</span>
+          </div>
+          <p class="card-purpose">Critical for TEs crossing the field on YAC — switch the ball to the correct outside arm without breaking stride. Prevents fumbles in the open field.</p>
+          <button class="toggle-notes" onclick="toggleNotes(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+            Coaching Notes
+          </button>
+          <div class="card-notes">Run laterally between cones; on the change of direction, switch ball to the new outside arm with one clean motion. 12 reps.</div>
+        </div>
+        <div class="card-footer">
+          <a class="video-btn" href="https://www.nfl.com/videos/george-kittle-runs-drills-with-players-at-tight-end-university" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5.5 20.5A.5.5 0 015 20V4a.5.5 0 01.8-.4l12 8a.5.5 0 010 .8l-12 8a.5.5 0 01-.3.1z"/></svg>
+            Watch — Kittle Drills at TE University (NFL.com)
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /ballsec -->
+
+  <div id="empty-state" class="empty">
+    <div class="empty-icon">🔍</div>
+    <h3>No drills match</h3>
+    <p>Try adjusting your filters or clearing the search.</p>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <span>Last verified May 4, 2026 &nbsp;·&nbsp; All links free &amp; public</span>
+  <span>24 drills · 5 categories · 16 consolidated for unique links</span>
+</footer>
+
+<!-- ═══════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════ -->
+<script>
+  /* ── Password ── */
+  const CORRECT = 'PIO2026';
+  const overlay  = document.getElementById('pw-overlay');
+  const pwInput  = document.getElementById('pw-input');
+  const pwError  = document.getElementById('pw-error');
+
+  // Auto-unlock if already verified this session
+  if (sessionStorage.getItem('pio_auth') === '1') unlock(false);
+
+  pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') checkPw(); });
+
+  function checkPw() {
+    if (pwInput.value.trim().toUpperCase() === CORRECT) {
+      sessionStorage.setItem('pio_auth', '1');
+      unlock(true);
+    } else {
+      pwError.textContent = 'Incorrect access code. Try again.';
+      pwInput.value = '';
+      pwInput.focus();
+      setTimeout(() => { pwError.textContent = ''; }, 3000);
+    }
+  }
+
+  function unlock(animate) {
+    if (animate) {
+      overlay.classList.add('fade-out');
+      setTimeout(() => { overlay.style.display = 'none'; }, 420);
+    } else {
+      overlay.style.display = 'none';
+    }
+    pwInput.focus();
+  }
+
+  /* ── Notes toggle ── */
+  function toggleNotes(btn) {
+    const notes = btn.nextElementSibling;
+    notes.classList.toggle('open');
+    btn.classList.toggle('open');
+  }
+
+  /* ── Filter + Search ── */
+  const cards     = document.querySelectorAll('.card');
+  const catBlocks = document.querySelectorAll('.category-block');
+  const empty     = document.getElementById('empty-state');
+  let activeCat   = 'all';
+  let activeDesig = 'all';
+  let searchTerm  = '';
+
+  function applyFilters() {
+    let anyVisible = false;
+    cards.forEach(card => {
+      const catOk   = activeCat   === 'all' || card.dataset.cat   === activeCat;
+      const desigOk = activeDesig === 'all' || card.dataset.desig === activeDesig;
+      const srch    = (card.dataset.search + ' ' + card.querySelector('.card-title').textContent).toLowerCase();
+      const searchOk = searchTerm === '' || srch.includes(searchTerm);
+      const show = catOk && desigOk && searchOk;
+      card.classList.toggle('hidden', !show);
+      if (show) anyVisible = true;
+    });
+    catBlocks.forEach(block => {
+      block.classList.toggle('hidden', block.querySelectorAll('.card:not(.hidden)').length === 0);
+    });
+    empty.style.display = anyVisible ? 'none' : 'block';
+  }
+
+  document.querySelectorAll('[data-cat]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-cat]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCat = btn.dataset.cat;
+      applyFilters();
+    });
+  });
+
+  document.querySelectorAll('[data-desig]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-desig]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeDesig = btn.dataset.desig;
+      applyFilters();
+    });
+  });
+
+  document.getElementById('search').addEventListener('input', e => {
+    searchTerm = e.target.value.toLowerCase().trim();
+    applyFilters();
+  });
+</script>
+</body>
+</html>
